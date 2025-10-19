@@ -1,3 +1,7 @@
+## WARNING
+This fork is only for https://github.com/Owca525/animu.
+Please don't use this fork for normal use. 
+
 mpegts.js  [![npm](https://img.shields.io/npm/v/mpegts.js.svg?style=flat)](https://www.npmjs.com/package/mpegts.js)
 ======
 [日本語](README_ja.md)  [中文说明](README_zh.md)

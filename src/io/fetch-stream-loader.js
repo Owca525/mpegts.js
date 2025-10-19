@@ -36,7 +36,7 @@ class FetchStreamLoader extends BaseLoader {
             // Fixed in Jan 10, 2017. Build 15048+ removed from blacklist.
             let isWorkWellEdge = Browser.msedge && Browser.version.minor >= 15048;
             let browserNotBlacklisted = Browser.msedge ? isWorkWellEdge : true;
-            return (self.fetch && self.ReadableStream && browserNotBlacklisted);
+            return (window.api.request.advanceRequest && self.ReadableStream && browserNotBlacklisted);
         } catch (e) {
             return false;
         }
@@ -88,11 +88,6 @@ class FetchStreamLoader extends BaseLoader {
         let params = {
             method: 'GET',
             headers: headers,
-            mode: 'cors',
-            cache: 'default',
-            // The default policy of Fetch API in the whatwg standard
-            // Safari incorrectly indicates 'no-referrer' as default policy, fuck it
-            referrerPolicy: 'no-referrer-when-downgrade'
         };
 
         // add additional headers
@@ -124,13 +119,12 @@ class FetchStreamLoader extends BaseLoader {
         }
 
         this._status = LoaderStatus.kConnecting;
-        self.fetch(seekConfig.url, params).then((res) => {
+        window.api.request.advanceRequest(seekConfig.url, params).then((res) => {
             if (this._requestAbort) {
                 this._status = LoaderStatus.kIdle;
-                res.body.cancel();
                 return;
             }
-            if (res.ok && (res.status >= 200 && res.status <= 299)) {
+            if (res.success && (res.status >= 200 && res.status <= 299)) {
                 if (res.url !== seekConfig.url) {
                     if (this._onURLRedirect) {
                         let redirectedURL = this._seekHandler.removeURLParameters(res.url);
@@ -138,7 +132,7 @@ class FetchStreamLoader extends BaseLoader {
                     }
                 }
 
-                let lengthHeader = res.headers.get('Content-Length');
+                let lengthHeader = res.headers['Content-Length'];
                 if (lengthHeader != null) {
                     this._contentLength = parseInt(lengthHeader);
                     if (this._contentLength !== 0) {
@@ -148,7 +142,7 @@ class FetchStreamLoader extends BaseLoader {
                     }
                 }
 
-                return this._pump.call(this, res.body.getReader());
+                return this._pump.call(this, res.buffer);
             } else {
                 this._status = LoaderStatus.kError;
                 if (this._onError) {
